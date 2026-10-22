@@ -1,0 +1,727 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+        content="StudentIQ helps analyze student academic performance, attendance, subject marks, and results.">
+
+    <title>Student Performance Analyzer | StudentIQ</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- ================= SIDEBAR ================= -->
+
+        <aside class="sidebar">
+
+            <div class="brand">
+                <div class="brand-icon">S</div>
+
+                <div>
+                    <h2>Student<span>IQ</span></h2>
+                    <p>Performance Analytics</p>
+                </div>
+            </div>
+
+            <div class="menu-heading">MAIN MENU</div>
+
+            <nav class="navigation">
+
+                <a href="#overview" class="nav-link active">
+                    <span class="nav-icon">▦</span>
+                    Dashboard
+                </a>
+
+                <a href="#performance" class="nav-link">
+                    <span class="nav-icon">▥</span>
+                    Performance
+                </a>
+
+                <a href="#students" class="nav-link">
+                    <span class="nav-icon">♙</span>
+                    Students
+                </a>
+
+                <a href="#upload" class="nav-link">
+                    <span class="nav-icon">↑</span>
+                    Upload Dataset
+                </a>
+
+                <a href="#top-students" class="nav-link">
+                    <span class="nav-icon">★</span>
+                    Top Students
+                </a>
+
+            </nav>
+
+            <!-- Sidebar Bottom -->
+
+            <div class="sidebar-bottom">
+
+                <div class="sidebar-help">
+
+                    <div class="help-icon">✦</div>
+
+                    <h3>Student Analytics</h3>
+
+                    <p>
+                        Understand student performance with
+                        data-driven insights.
+                    </p>
+
+                    <a href="#overview">
+                        Explore Dashboard →
+                    </a>
+
+                </div>
+
+                <div class="sidebar-footer">
+
+                    <div class="footer-avatar">SA</div>
+
+                    <div>
+                        <h4>Admin Panel</h4>
+                        <p>Analytics Dashboard</p>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </aside>
+
+
+        <!-- ================= MAIN CONTENT ================= -->
+
+        <main class="main-content">
+
+            <!-- HEADER -->
+
+            <header class="topbar">
+
+                <div class="page-title">
+
+                    <p class="breadcrumb">
+                        Pages / Dashboard
+                    </p>
+
+                    <h1>Student Dashboard</h1>
+
+                    <p class="page-subtitle">
+                        Monitor academic performance and student progress.
+                    </p>
+
+                </div>
+
+                <div class="topbar-right">
+
+                    <div class="live-status">
+                        <span class="status-dot"></span>
+                        Live Analytics
+                    </div>
+
+                    <div class="profile-avatar">SA</div>
+
+                </div>
+
+            </header>
+
+
+            <!-- ================= FLASH MESSAGES ================= -->
+
+            {% if message %}
+
+            <div class="alert success-alert" role="status">
+                ✓ {{ message }}
+            </div>
+
+            {% endif %}
+
+            {% if error %}
+
+            <div class="alert error-alert" role="alert">
+                ⚠ {{ error }}
+            </div>
+
+            {% endif %}
+
+
+            <!-- ================= OVERVIEW ================= -->
+
+            <section id="overview">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Overview</h2>
+
+                        <p>
+                            Here's what's happening with your students.
+                        </p>
+                    </div>
+
+                    <a href="{{ url_for('download_report') }}"
+                        class="button button-primary">
+                        ↓ Download Report
+                    </a>
+
+                </div>
+
+
+                <!-- STATISTICS CARDS -->
+
+                <div class="stats-grid">
+
+                    <!-- Total Students -->
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+                            <div class="stat-icon purple-icon">♙</div>
+                            <span class="stat-label">Total Students</span>
+                        </div>
+
+                        <h2>{{ total_students }}</h2>
+
+                        <p class="stat-description">
+                            Students in dataset
+                        </p>
+
+                    </div>
+
+
+                    <!-- Average Score -->
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+                            <div class="stat-icon blue-icon">▥</div>
+                            <span class="stat-label">Average Score</span>
+                        </div>
+
+                        <h2>{{ average_percentage }}<small>%</small></h2>
+
+                        <p class="stat-description">
+                            Average academic performance
+                        </p>
+
+                    </div>
+
+
+                    <!-- Pass Rate -->
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+                            <div class="stat-icon green-icon">✓</div>
+                            <span class="stat-label">Pass Rate</span>
+                        </div>
+
+                        <h2>{{ pass_percentage }}<small>%</small></h2>
+
+                        <p class="stat-description">
+                            {{ pass_count }} students passed
+                        </p>
+
+                    </div>
+
+
+                    <!-- Students Needing Improvement -->
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+                            <div class="stat-icon orange-icon">!</div>
+                            <span class="stat-label">Needs Improvement</span>
+                        </div>
+
+                        <h2>{{ fail_count }}</h2>
+
+                        <p class="stat-description">
+                            Students who failed
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= PERFORMANCE ANALYTICS ================= -->
+
+            <section id="performance" class="charts-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>Performance Analytics</h2>
+
+                        <p>
+                            Visual insights into academic results.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="charts-grid">
+
+                    <!-- SUBJECT PERFORMANCE CHART -->
+
+                    <div class="panel chart-panel">
+
+                        <div class="panel-heading">
+
+                            <div>
+                                <h3>Subject Performance</h3>
+
+                                <p>
+                                    Average marks by subject
+                                </p>
+                            </div>
+
+                            <span class="chart-badge">
+                                Average
+                            </span>
+
+                        </div>
+
+                        <div class="chart-container">
+                            <canvas
+                                id="subjectChart"
+                                aria-label="Average marks by subject"
+                                role="img">
+                            </canvas>
+                        </div>
+
+                    </div>
+
+
+                    <!-- PASS VS FAIL CHART -->
+
+                    <div class="panel chart-panel">
+
+                        <div class="panel-heading">
+
+                            <div>
+                                <h3>Pass vs Fail</h3>
+
+                                <p>
+                                    Student result distribution
+                                </p>
+                            </div>
+
+                        </div>
+
+                        <div class="donut-container">
+
+                            <canvas
+                                id="resultChart"
+                                aria-label="Pass and fail student distribution"
+                                role="img">
+                            </canvas>
+
+                        </div>
+
+                        <div class="result-legend">
+
+                            <div>
+                                <span class="legend-dot pass-dot"></span>
+                                Passed
+                                <strong>{{ pass_count }}</strong>
+                            </div>
+
+                            <div>
+                                <span class="legend-dot fail-dot"></span>
+                                Failed
+                                <strong>{{ fail_count }}</strong>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= TOP STUDENTS ================= -->
+
+            <section id="top-students"
+                class="panel top-students-panel">
+
+                <div class="panel-heading">
+
+                    <div>
+                        <h2>Top Performing Students</h2>
+
+                        <p>
+                            Students ranked by percentage.
+                        </p>
+                    </div>
+
+                    <span class="chart-badge">
+                        Top 5
+                    </span>
+
+                </div>
+
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>RANK</th>
+                                <th>STUDENT</th>
+                                <th>ROLL NO.</th>
+                                <th>TOTAL MARKS</th>
+                                <th>PERCENTAGE</th>
+                                <th>RESULT</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for student in top_students %}
+
+                            <tr>
+
+                                <td>
+                                    <span class="rank-badge">
+                                        {{ loop.index }}
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <div class="student-name">
+
+                                        <strong>{{ student.Name }}</strong>
+
+                                    </div>
+                                </td>
+
+                                <td>{{ student.Roll_No }}</td>
+
+                                <td>{{ student.Total }}</td>
+
+                                <td>
+                                    <strong class="percentage-value">
+                                        {{ student.Percentage }}%
+                                    </strong>
+                                </td>
+
+                                <td>
+
+                                    {% if student.Result == "Pass" %}
+
+                                    <span class="result-badge pass-badge">
+                                        Pass
+                                    </span>
+
+                                    {% else %}
+
+                                    <span class="result-badge fail-badge">
+                                        Fail
+                                    </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                            {% else %}
+
+                            <tr>
+                                <td colspan="6" class="empty-message">
+                                    No student data available.
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= UPLOAD DATASET ================= -->
+
+            <section id="upload" class="panel upload-panel">
+
+                <div class="panel-heading">
+
+                    <div>
+                        <h2>Upload Student Dataset</h2>
+
+                        <p>
+                            Upload your own CSV file to analyze
+                            student performance.
+                        </p>
+                    </div>
+
+                    <div class="stat-icon blue-icon">↑</div>
+
+                </div>
+
+
+                <form action="{{ url_for('index') }}"
+                    method="POST"
+                    enctype="multipart/form-data"
+                    class="upload-form">
+
+                    <label for="dataset" class="upload-dropzone">
+
+                        <div class="upload-icon">↑</div>
+
+                        <h3>Choose a CSV file</h3>
+
+                        <p>
+                            Select your student dataset from your computer.
+                        </p>
+
+                        <span class="button button-outline">
+                            Browse Files
+                        </span>
+
+                        <input
+                            type="file"
+                            name="dataset"
+                            id="dataset"
+                            accept=".csv,text/csv"
+                            required>
+
+                    </label>
+
+
+                    <div class="upload-bottom">
+
+                        <p id="fileName" aria-live="polite">
+                            Supported format: CSV
+                        </p>
+
+                        <button type="submit"
+                            class="button button-primary">
+                            Upload Dataset →
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </section>
+
+
+            <!-- ================= ALL STUDENTS ================= -->
+
+            <section id="students" class="panel students-panel">
+
+                <div class="panel-heading">
+
+                    <div>
+                        <h2>All Students</h2>
+
+                        <p>
+                            Search and view student academic records.
+                        </p>
+                    </div>
+
+                    <span class="chart-badge">
+                        {{ students | length }} Records
+                    </span>
+
+                </div>
+
+
+                <!-- SEARCH FORM -->
+
+                <form action="{{ url_for('index') }}"
+                    method="GET"
+                    class="search-form">
+
+                    <div class="search-box">
+
+                        <span>⌕</span>
+
+                        <input
+                            type="text"
+                            name="search"
+                            value="{{ search }}"
+                            placeholder="Search by name or roll number..."
+                            aria-label="Search students">
+
+                    </div>
+
+                    <button type="submit"
+                        class="button button-primary">
+                        Search
+                    </button>
+
+                    {% if search %}
+
+                    <a href="{{ url_for('index') }}"
+                        class="button button-outline">
+                        Clear
+                    </a>
+
+                    {% endif %}
+
+                </form>
+
+
+                <!-- STUDENT TABLE -->
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+                            <tr>
+                                <th>ROLL NO.</th>
+                                <th>STUDENT NAME</th>
+                                <th>PYTHON</th>
+                                <th>MATHS</th>
+                                <th>ENGLISH</th>
+                                <th>SCIENCE</th>
+                                <th>TOTAL</th>
+                                <th>PERCENTAGE</th>
+                                <th>ATTENDANCE</th>
+                                <th>RESULT</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+
+                            {% for student in students %}
+
+                            <tr>
+
+                                <td>{{ student.Roll_No }}</td>
+
+                                <td>
+                                    <div class="student-name">
+
+                                        <strong>{{ student.Name }}</strong>
+
+                                    </div>
+                                </td>
+
+                                <td>{{ student.Python }}</td>
+                                <td>{{ student.Maths }}</td>
+                                <td>{{ student.English }}</td>
+                                <td>{{ student.Science }}</td>
+                                <td>{{ student.Total }}</td>
+
+                                <td>
+                                    <strong class="percentage-value">
+                                        {{ student.Percentage }}%
+                                    </strong>
+                                </td>
+
+                                <td>{{ student.Attendance }}%</td>
+
+                                <td>
+
+                                    {% if student.Result == "Pass" %}
+
+                                    <span class="result-badge pass-badge">
+                                        Pass
+                                    </span>
+
+                                    {% else %}
+
+                                    <span class="result-badge fail-badge">
+                                        Fail
+                                    </span>
+
+                                    {% endif %}
+
+                                </td>
+
+                            </tr>
+
+                            {% else %}
+
+                            <tr>
+                                <td colspan="10" class="empty-message">
+                                    No students found. Try another search.
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </section>
+
+
+            <!-- ================= FOOTER ================= -->
+
+            <footer class="footer">
+
+                <p>
+                    © 2026 StudentIQ Analytics Dashboard
+                </p>
+
+                <p>
+                    Built with Python, Flask, Pandas &amp; NumPy
+                </p>
+
+            </footer>
+
+        </main>
+
+    </div>
+
+
+    <!-- ================= CHART DATA ================= -->
+
+    <script>
+        window.dashboardData = {
+            subjectLabels: {{ subject_averages.keys() | list | tojson }},
+            subjectValues: {{ subject_averages.values() | list | tojson }},
+            passCount: {{ pass_count | tojson }},
+            failCount: {{ fail_count | tojson }}
+        };
+    </script>
+
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+
+</html>
