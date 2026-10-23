@@ -267,3 +267,11 @@ def test_invalid_upload_preserves_existing_data(tmp_path, monkeypatch):
 
     assert str(saved_data["Roll_No"].iloc[0]) == "101"
     assert saved_data["Name"].iloc[0] == "Rahul"
+
+def test_average_attendance_calculation():
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        response = client.get("/")
+    assert response.status_code == 200
+    assert b"85.8" in response.data

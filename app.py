@@ -50,7 +50,7 @@ def analyze_data(df):
             "Duplicate column names are not allowed: "
             + ", ".join(duplicate_columns)
         )
-        
+
     # Check required columns
     missing = [
         col for col in REQUIRED_COLUMNS
@@ -291,6 +291,12 @@ def index():
         if total_students else 0
     )
 
+    # Average attendance
+    average_attendance = (
+        round(df["Attendance"].mean(), 2)
+        if total_students else 0
+    )
+
     pass_count = int((df["Result"] == "Pass").sum())
     fail_count = total_students - pass_count
 
@@ -318,6 +324,7 @@ def index():
         "index.html",
         total_students=total_students,
         average_percentage=average_percentage,
+        average_attendance=average_attendance,
         pass_percentage=pass_percentage,
         pass_count=pass_count,
         fail_count=fail_count,

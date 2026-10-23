@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -15,13 +14,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet"
-        href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -181,8 +177,7 @@
                         </p>
                     </div>
 
-                    <a href="{{ url_for('download_report') }}"
-                        class="button button-primary">
+                    <a href="{{ url_for('download_report') }}" class="button button-primary">
                         ↓ Download Report
                     </a>
 
@@ -247,6 +242,25 @@
                     </div>
 
 
+                    <!-- Average Attendance -->
+
+                    <div class="stat-card">
+
+                        <div class="stat-top">
+                            <div class="stat-icon blue-icon">◷</div>
+                            <span class="stat-label">Average Attendance</span>
+                        </div>
+
+                        <h2>{{ average_attendance }}<small>%</small></h2>
+
+                        <p class="stat-description">
+                            Average student attendance
+                        </p>
+
+                    </div>
+
+
+
                     <!-- Students Needing Improvement -->
 
                     <div class="stat-card">
@@ -309,10 +323,7 @@
                         </div>
 
                         <div class="chart-container">
-                            <canvas
-                                id="subjectChart"
-                                aria-label="Average marks by subject"
-                                role="img">
+                            <canvas id="subjectChart" aria-label="Average marks by subject" role="img">
                             </canvas>
                         </div>
 
@@ -337,10 +348,7 @@
 
                         <div class="donut-container">
 
-                            <canvas
-                                id="resultChart"
-                                aria-label="Pass and fail student distribution"
-                                role="img">
+                            <canvas id="resultChart" aria-label="Pass and fail student distribution" role="img">
                             </canvas>
 
                         </div>
@@ -370,8 +378,7 @@
 
             <!-- ================= TOP STUDENTS ================= -->
 
-            <section id="top-students"
-                class="panel top-students-panel">
+            <section id="top-students" class="panel top-students-panel">
 
                 <div class="panel-heading">
 
@@ -494,10 +501,7 @@
                 </div>
 
 
-                <form action="{{ url_for('index') }}"
-                    method="POST"
-                    enctype="multipart/form-data"
-                    class="upload-form">
+                <form action="{{ url_for('index') }}" method="POST" enctype="multipart/form-data" class="upload-form">
 
                     <label for="dataset" class="upload-dropzone">
 
@@ -513,12 +517,7 @@
                             Browse Files
                         </span>
 
-                        <input
-                            type="file"
-                            name="dataset"
-                            id="dataset"
-                            accept=".csv,text/csv"
-                            required>
+                        <input type="file" name="dataset" id="dataset" accept=".csv,text/csv" required>
 
                     </label>
 
@@ -529,8 +528,7 @@
                             Supported format: CSV
                         </p>
 
-                        <button type="submit"
-                            class="button button-primary">
+                        <button type="submit" class="button button-primary">
                             Upload Dataset →
                         </button>
 
@@ -564,32 +562,24 @@
 
                 <!-- SEARCH FORM -->
 
-                <form action="{{ url_for('index') }}"
-                    method="GET"
-                    class="search-form">
+                <form action="{{ url_for('index') }}" method="GET" class="search-form">
 
                     <div class="search-box">
 
                         <span>⌕</span>
 
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ search }}"
-                            placeholder="Search by name or roll number..."
-                            aria-label="Search students">
+                        <input type="text" name="search" value="{{ search }}"
+                            placeholder="Search by name or roll number..." aria-label="Search students">
 
                     </div>
 
-                    <button type="submit"
-                        class="button button-primary">
+                    <button type="submit" class="button button-primary">
                         Search
                     </button>
 
                     {% if search %}
 
-                    <a href="{{ url_for('index') }}"
-                        class="button button-outline">
+                    <a href="{{ url_for('index') }}" class="button button-outline">
                         Clear
                     </a>
 
@@ -712,9 +702,9 @@
     <script>
         window.dashboardData = {
             subjectLabels: {{ subject_averages.keys() | list | tojson }},
-            subjectValues: {{ subject_averages.values() | list | tojson }},
-            passCount: {{ pass_count | tojson }},
-            failCount: {{ fail_count | tojson }}
+        subjectValues: { { subject_averages.values() | list | tojson } },
+        passCount: { { pass_count | tojson } },
+        failCount: { { fail_count | tojson } }
         };
     </script>
 
