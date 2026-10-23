@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, send_file
 import pandas as pd
 import numpy as np
@@ -14,7 +13,6 @@ app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 # Project paths
 BASE_DIR = Path(__file__).resolve().parent
 DATA_FILE = BASE_DIR / "data" / "students.csv"
-
 
 # Subjects and required CSV columns
 SUBJECTS = ["Python", "Maths", "English", "Science"]
@@ -37,7 +35,8 @@ def analyze_data(df):
     if df.empty:
         raise ValueError("CSV file is empty. Please upload student data.")
 
-    # Normalize column names by removing surrounding spaces
+    # Normalize column names
+    df = df.copy()
     df.columns = df.columns.astype(str).str.strip()
 
     # Check required columns
@@ -47,28 +46,33 @@ def analyze_data(df):
     ]
 
     if missing:
-        raise ValueError("Missing columns: " + ", ".join(missing))
+        raise ValueError(
+            "Missing columns: " + ", ".join(missing)
+        )
 
     # Keep only required columns
     df = df[REQUIRED_COLUMNS].copy()
 
-    # Normalize names and roll numbers
+    # Normalize roll numbers and names
     df["Roll_No"] = df["Roll_No"].astype("string").str.strip()
     df["Name"] = df["Name"].astype("string").str.strip()
 
-    # Check missing and empty names or roll numbers
+    # Check missing or empty roll numbers and names
     if (
         df["Roll_No"].isna().any()
         or df["Name"].isna().any()
         or df["Roll_No"].eq("").any()
         or df["Name"].eq("").any()
     ):
-        raise ValueError("Every student must have a roll number and name.")
- 
+        raise ValueError(
+            "Every student must have a roll number and name."
+        )
 
     # Check duplicate roll numbers
     if df["Roll_No"].duplicated().any():
-        raise ValueError("Duplicate roll numbers are not allowed.")
+        raise ValueError(
+            "Duplicate roll numbers are not allowed."
+        )
 
     # Validate gender values
     df["Gender"] = (
@@ -101,7 +105,9 @@ def analyze_data(df):
 
     # Reject missing numeric values
     if df[numeric_columns].isna().any().any():
-        raise ValueError("Marks and attendance cannot be empty.")
+        raise ValueError(
+            "Marks and attendance cannot be empty."
+        )
 
     # Reject infinite values
     if not np.isfinite(
@@ -123,7 +129,9 @@ def analyze_data(df):
         df["Attendance"].lt(0).any()
         or df["Attendance"].gt(100).any()
     ):
-        raise ValueError("Attendance must be between 0 and 100.")
+        raise ValueError(
+            "Attendance must be between 0 and 100."
+        )
 
     # Calculate total marks
     df["Total"] = df[SUBJECTS].sum(axis=1)
@@ -154,10 +162,12 @@ def get_data():
 
     try:
         df = pd.read_csv(DATA_FILE)
+
     except pd.errors.EmptyDataError as exc:
         raise ValueError(
             "The saved students.csv file is empty."
         ) from exc
+
     except pd.errors.ParserError as exc:
         raise ValueError(
             "The saved students.csv file has an invalid CSV format."
@@ -215,15 +225,21 @@ def index():
                 error = f"Upload failed: {exc}"
 
             except Exception:
-                app.logger.exception("Unexpected CSV upload error")
-                error = "Upload failed due to an unexpected error."
+                app.logger.exception(
+                    "Unexpected CSV upload error"
+                )
+                error = (
+                    "Upload failed due to an unexpected error."
+                )
 
     # Load saved dataset
     try:
         df = get_data()
 
     except Exception:
-        app.logger.exception("Unable to load student dataset")
+        app.logger.exception(
+            "Unable to load student dataset"
+        )
         return (
             "Dataset error. Check data/students.csv "
             "and the terminal output for details.",
@@ -249,7 +265,9 @@ def index():
                 regex=False
             )
         )
+
         visible_students = df[mask]
+
     else:
         visible_students = df
 
@@ -280,7 +298,9 @@ def index():
     )
 
     # Average marks by subject
-    subject_averages = df[SUBJECTS].mean().round(2).to_dict()
+    subject_averages = (
+        df[SUBJECTS].mean().round(2).to_dict()
+    )
 
     return render_template(
         "index.html",
@@ -317,7 +337,9 @@ def download_report():
         )
 
     except Exception:
-        app.logger.exception("Unable to generate student report")
+        app.logger.exception(
+            "Unable to generate student report"
+        )
         return "Unable to generate the report.", 500
 
 
@@ -332,3 +354,9 @@ def file_too_large(error):
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+def test_missing_required_column(valid_data):
+    invalid_data = valid_data.drop(columns=["Maths"])
+
+    with pytest.raises(ValueError, match="Missing columns"):
+        analyze_data(invalid_data)
