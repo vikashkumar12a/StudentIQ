@@ -39,6 +39,18 @@ def analyze_data(df):
     df = df.copy()
     df.columns = df.columns.astype(str).str.strip()
 
+        # Check duplicate column names
+    if df.columns.duplicated().any():
+        duplicate_columns = (
+            df.columns[df.columns.duplicated()]
+            .tolist()
+        )
+
+        raise ValueError(
+            "Duplicate column names are not allowed: "
+            + ", ".join(duplicate_columns)
+        )
+        
     # Check required columns
     missing = [
         col for col in REQUIRED_COLUMNS
@@ -351,12 +363,5 @@ def file_too_large(error):
         413
     )
 
-
 if __name__ == "__main__":
     app.run(debug=True)
-
-def test_missing_required_column(valid_data):
-    invalid_data = valid_data.drop(columns=["Maths"])
-
-    with pytest.raises(ValueError, match="Missing columns"):
-        analyze_data(invalid_data)

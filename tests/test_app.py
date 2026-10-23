@@ -1,9 +1,8 @@
 
+import io
 import pandas as pd
 import pytest
-
 from app import analyze_data, app, REQUIRED_COLUMNS
-
 
 @pytest.fixture
 def valid_data():
@@ -111,3 +110,160 @@ def test_dashboard_page():
 
     assert response.status_code == 200
 
+def test_missing_required_column(valid_data):
+    invalid_data = valid_data.drop(columns=["Maths"])
+
+    with pytest.raises(ValueError, match="Missing columns"):
+        analyze_data(invalid_data)
+
+def test_duplicate_column_names(valid_data):
+    duplicate_data = valid_data.copy()
+
+    duplicate_data.columns = [
+        "Roll_No",
+        "Name",
+        "Gender",
+        "Python",
+        "Maths",
+        "English",
+        "Attendance",
+        "Attendance",
+    ]
+
+    with pytest.raises(
+        ValueError,
+        match="Duplicate column names are not allowed",
+    ):
+        analyze_data(duplicate_data)
+   
+def test_empty_csv_upload():
+    app.config["TESTING"] = True
+
+    with app.test_client() as client:
+        response = client.post(
+            "/",
+            data={
+                "dataset": (
+                    io.BytesIO(b""),
+                    "empty.csv",
+                )
+            },
+            content_type="multipart/form-data",
+        )
+
+    assert response.status_code == 200
+    assert b"CSV file is empty" in response.data
+
+
+def test_invalid_csv_format():
+    app.config["TESTING"] = True
+
+    invalid_csv = b'Roll_No,Name\n101,"Rahul'
+
+    with app.test_client() as client:
+        response = client.post(
+            "/",
+            data={
+                "dataset": (
+                    io.BytesIO(invalid_csv),
+                    "invalid.csv",
+                )
+            },
+            content_type="multipart/form-data",
+        )
+
+    assert response.status_code == 200
+    assert b"Invalid CSV format" in response.data
+
+def test_file_size_limit():
+    app.config["TESTING"] = True
+
+    large_csv = b"A" * (6 * 1024 * 1024)
+
+    with app.test_client() as client:
+        response = client.post(
+            "/",
+            data={
+                "dataset": (
+                    io.BytesIO(large_csv),
+                    "large.csv",
+                )
+            },
+            content_type="multipart/form-data",
+        )
+
+    assert response.status_code == 413
+
+
+def test_invalid_csv_encoding():
+    app.config["TESTING"] = True
+
+    invalid_csv = b"\xff\xfe\xfa\xfb"
+
+    with app.test_client() as client:
+        response = client.post(
+            "/",
+            data={
+                "dataset": (
+                    io.BytesIO(invalid_csv),
+                    "invalid_encoding.csv",
+                )
+            },
+            content_type="multipart/form-data",
+        )
+
+    assert response.status_code == 200
+    assert b"error" in response.data.lower()
+
+def test_invalid_upload_preserves_existing_data(tmp_path, monkeypatch):
+    import app as student_app
+
+    app.config["TESTING"] = True
+
+    original_data = pd.DataFrame({
+        "Roll_No": ["101"],
+        "Name": ["Rahul"],
+        "Gender": ["Male"],
+        "Python": [80],
+        "Maths": [75],
+        "English": [85],
+        "Science": [90],
+        "Attendance": [95],
+    })
+
+    data_file = tmp_path / "students.csv"
+    original_data.to_csv(data_file, index=False)
+
+    monkeypatch.setattr(student_app, "DATA_FILE", data_file)
+
+    invalid_data = pd.DataFrame({
+        "Roll_No": ["102"],
+        "Name": ["Aman"],
+        "Gender": ["Male"],
+        "Python": [150],
+        "Maths": [75],
+        "English": [85],
+        "Science": [90],
+        "Attendance": [95],
+    })
+
+    csv_content = invalid_data.to_csv(index=False).encode("utf-8")
+
+    with app.test_client() as client:
+        response = client.post(
+            "/",
+            data={
+                "dataset": (
+                    io.BytesIO(csv_content),
+                    "invalid.csv",
+                )
+            },
+            content_type="multipart/form-data",
+        )
+
+    assert response.status_code == 200
+
+    saved_data = pd.read_csv(data_file)
+
+    assert str(saved_data["Roll_No"].iloc[0]) == "101"
+    assert saved_data["Name"].iloc[0] == "Rahul"
