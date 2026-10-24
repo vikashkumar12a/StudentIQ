@@ -1,5 +1,6 @@
+```javascript
 // =====================================
-// 1. GET DATA FROM FLASK / PYTHON
+// 1. GET DASHBOARD DATA
 // =====================================
 
 const dashboardData = window.dashboardData || {
@@ -11,43 +12,63 @@ const dashboardData = window.dashboardData || {
 
 
 // =====================================
-// 2. SUBJECT PERFORMANCE BAR CHART
+// 2. CHECK CHART.JS
 // =====================================
 
-const subjectCanvas = document.getElementById("subjectChart");
+if (typeof Chart === "undefined") {
+    console.error(
+        "Chart.js is not loaded. Check the Chart.js CDN in index.html."
+    );
+} else {
 
-if (subjectCanvas) {
-    new Chart(subjectCanvas, {
+    // Destroy existing chart before recreating it.
+    function createChart(canvasId, config) {
+        const canvas = document.getElementById(canvasId);
+
+        if (!canvas) {
+            console.warn(`Canvas not found: ${canvasId}`);
+            return;
+        }
+
+        const existingChart = Chart.getChart(canvas);
+
+        if (existingChart) {
+            existingChart.destroy();
+        }
+
+        return new Chart(canvas, config);
+    }
+
+
+    // =====================================
+    // 3. SUBJECT PERFORMANCE CHART
+    // =====================================
+
+    createChart("subjectChart", {
         type: "bar",
 
         data: {
             labels: dashboardData.subjectLabels,
 
-            datasets: [
-                {
-                    label: "Average Marks",
+            datasets: [{
+                label: "Average Marks",
+                data: dashboardData.subjectValues,
 
-                    data: dashboardData.subjectValues,
+                backgroundColor: [
+                    "#635bff",
+                    "#3985f7",
+                    "#16b981",
+                    "#f5a742"
+                ],
 
-                    backgroundColor: [
-                        "#635bff",
-                        "#3985f7",
-                        "#16b981",
-                        "#f5a742"
-                    ],
-
-                    borderRadius: 8,
-
-                    borderSkipped: false,
-
-                    maxBarThickness: 55
-                }
-            ]
+                borderRadius: 8,
+                borderSkipped: false,
+                maxBarThickness: 55
+            }]
         },
 
         options: {
             responsive: true,
-
             maintainAspectRatio: false,
 
             plugins: {
@@ -56,13 +77,10 @@ if (subjectCanvas) {
                 },
 
                 tooltip: {
-                    backgroundColor: "#171a2f",
-
-                    padding: 12,
-
                     callbacks: {
                         label: function (context) {
-                            return " Average Marks: " + context.parsed.y;
+                            return " Average Marks: " +
+                                context.parsed.y;
                         }
                     }
                 }
@@ -71,90 +89,52 @@ if (subjectCanvas) {
             scales: {
                 y: {
                     beginAtZero: true,
-
                     max: 100,
 
                     ticks: {
-                        stepSize: 20,
-
-                        color: "#858ba3",
-
-                        font: {
-                            size: 11
-                        }
-                    },
-
-                    grid: {
-                        color: "#edf0f6",
-
-                        drawBorder: false
-                    },
-
-                    border: {
-                        display: false
+                        stepSize: 20
                     }
                 },
 
                 x: {
-                    ticks: {
-                        color: "#626981",
-
-                        font: {
-                            size: 11
-                        }
-                    },
-
                     grid: {
-                        display: false
-                    },
-
-                    border: {
                         display: false
                     }
                 }
             }
         }
     });
-}
 
 
-// =====================================
-// 3. PASS VS FAIL DOUGHNUT CHART
-// =====================================
+    // =====================================
+    // 4. PASS VS FAIL DOUGHNUT CHART
+    // =====================================
 
-const resultCanvas = document.getElementById("resultChart");
-
-if (resultCanvas) {
-    new Chart(resultCanvas, {
+    createChart("resultChart", {
         type: "doughnut",
 
         data: {
             labels: ["Passed", "Failed"],
 
-            datasets: [
-                {
-                    data: [
-                        dashboardData.passCount,
-                        dashboardData.failCount
-                    ],
+            datasets: [{
+                data: [
+                    Number(dashboardData.passCount) || 0,
+                    Number(dashboardData.failCount) || 0
+                ],
 
-                    backgroundColor: [
-                        "#16b981",
-                        "#ff7373"
-                    ],
+                backgroundColor: [
+                    "#16b981",
+                    "#ff7373"
+                ],
 
-                    borderWidth: 0,
-
-                    hoverOffset: 8,
-
-                    spacing: 4
-                }
-            ]
+                borderWidth: 0,
+                hoverOffset: 8,
+                spacing: 4
+            }]
         },
 
         options: {
             responsive: true,
-
             maintainAspectRatio: false,
 
             cutout: "72%",
@@ -162,79 +142,107 @@ if (resultCanvas) {
             plugins: {
                 legend: {
                     display: false
-                },
-
-                tooltip: {
-                    backgroundColor: "#171a2f",
-
-                    padding: 12
                 }
             }
         }
     });
+
+
+    // =====================================
+    // 5. GRADE DISTRIBUTION CHART
+    // =====================================
+
+    if (
+        Array.isArray(window.gradeLabels) &&
+        Array.isArray(window.gradeValues)
+    ) {
+        createChart("gradeChart", {
+            type: "bar",
+
+            data: {
+                labels: window.gradeLabels,
+
+                datasets: [{
+                    label: "Students",
+                    data: window.gradeValues,
+
+                    backgroundColor: [
+                        "#16b981",
+                        "#3985f7",
+                        "#635bff",
+                        "#f5a742",
+                        "#ff7373",
+                        "#dc2626"
+                    ],
+
+                    borderRadius: 6
+                }]
+            },
+
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            precision: 0
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
 
 
 // =====================================
-// 4. CSV FILE NAME DISPLAY
+// 6. CSV FILE NAME DISPLAY
 // =====================================
 
 const datasetInput = document.getElementById("dataset");
-
 const fileNameDisplay = document.getElementById("fileName");
 
 if (datasetInput && fileNameDisplay) {
-
     datasetInput.addEventListener("change", function () {
-
         if (this.files.length > 0) {
-
-            const selectedFile = this.files[0];
-
             fileNameDisplay.textContent =
-                "Selected file: " + selectedFile.name;
-
+                "Selected file: " + this.files[0].name;
         } else {
-
-            fileNameDisplay.textContent =
-                "Supported format: CSV";
-
+            fileNameDisplay.textContent = "Supported format: CSV";
         }
-
     });
-
 }
 
 
 // =====================================
-// 5. SIDEBAR ACTIVE NAVIGATION
+// 7. SIDEBAR NAVIGATION
 // =====================================
 
 const navLinks = document.querySelectorAll(".nav-link");
 
 navLinks.forEach(function (link) {
-
     link.addEventListener("click", function () {
-
         navLinks.forEach(function (item) {
             item.classList.remove("active");
         });
 
         this.classList.add("active");
-
     });
-
 });
 
 
 // =====================================
-// 6. DASHBOARD LOADED
+// 8. DEBUG INFORMATION
 // =====================================
 
-console.log("Student Performance Analyzer loaded successfully.");
-
-console.log("Subject data:", dashboardData.subjectValues);
-
-console.log("Passed students:", dashboardData.passCount);
-
-console.log("Failed students:", dashboardData.failCount);
+console.log("StudentIQ dashboard loaded.");
+console.log("Dashboard data:", dashboardData);
+```

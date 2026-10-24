@@ -259,6 +259,82 @@
 
                     </div>
 
+                    <!-- Subject-wise Average Marks -->
+
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon blue-icon">📊</div>
+                            <span class="stat-label">Subject-wise Average</span>
+                        </div>
+
+
+                        {% for subject, average in subject_averages.items() %}
+                        <p class="stat-description">
+                            {{ subject }}: <strong>{{ average }}%</strong>
+                        </p>
+                        {% endfor %}
+
+
+                    </div>
+                    <!-- Highest Scoring Subject -->
+
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon blue-icon">🏆</div>
+                            <span class="stat-label">Highest Scoring Subject</span>
+                        </div>
+
+                        {% if highest_subject %}
+                        <h2>{{ highest_subject }}</h2>
+                        <p class="stat-description">
+                            Average Marks: {{ subject_averages[highest_subject] }}%
+                        </p>
+                        {% else %}
+                        <p>No data available</p>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- Lowest Scoring Subject -->
+
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon blue-icon">📉</div>
+                            <span class="stat-label">Lowest Scoring Subject</span>
+                        </div>
+
+
+                        {% if lowest_subject %}
+                        <h2>{{ lowest_subject }}</h2>
+                        <p class="stat-description">
+                            Average Marks: {{ subject_averages[lowest_subject] }}%
+                        </p>
+                        {% else %}
+                        <p>No data available</p>
+                        {% endif %}
+
+
+                    </div>
+
+
+                    <!-- Subject Comparison Chart -->
+
+                    <div class="stat-card">
+                        <div class="stat-top">
+                            <div class="stat-icon blue-icon">📊</div>
+                            <span class="stat-label">Subject Performance Comparison</span>
+                        </div>
+
+
+                        <div style="position: relative; width: 100%; height: 300px;">
+                            <canvas id="overviewSubjectChart" aria-label="Subject performance comparison" role="img"></canvas>
+                        </div>
+
+
+                    </div>
+
+
+
 
 
                     <!-- Students Needing Improvement -->
@@ -301,6 +377,26 @@
 
 
                 <div class="charts-grid">
+                    <!-- GRADE DISTRIBUTION CHART -->
+
+                    <div class="panel chart-panel">
+                        <div class="panel-heading">
+                            <div>
+                                <h3>Grade Distribution</h3>
+                                <p>Number of students in each grade</p>
+                            </div>
+
+
+                            <span class="chart-badge">Grades</span>
+                        </div>
+
+                        <div class="chart-container">
+                            <canvas id="gradeChart" aria-label="Grade distribution chart" role="img"></canvas>
+                        </div>
+
+
+                    </div>
+
 
                     <!-- SUBJECT PERFORMANCE CHART -->
 
@@ -697,19 +793,100 @@
     </div>
 
 
-    <!-- ================= CHART DATA ================= -->
-
+    <!-- ================= CHARTS ================= -->
     <script>
-        window.dashboardData = {
-            subjectLabels: {{ subject_averages.keys() | list | tojson }},
-        subjectValues: { { subject_averages.values() | list | tojson } },
-        passCount: { { pass_count | tojson } },
-        failCount: { { fail_count | tojson } }
-        };
+        document.addEventListener("DOMContentLoaded", function () {
+            const subjectLabels = {{ subject_averages.keys() | list | tojson }};
+            const subjectValues = {{ subject_averages.values() | list | tojson }};
+            const gradeLabels = {{ (grade_distribution | default({})).keys() | list | tojson }};
+            const gradeValues = {{ (grade_distribution | default({})).values() | list | tojson }};
+            const passCount = {{ pass_count | tojson }};
+            const failCount = {{ fail_count | tojson }};
+
+            function createBarChart(canvasId, labels, values, datasetLabel, maxValue, axisTitle) {
+                const canvas = document.getElementById(canvasId);
+                if (!canvas) return;
+
+                new Chart(canvas, {
+                    type: "bar",
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: datasetLabel,
+                            data: values,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ...(maxValue !== null ? { max: maxValue } : {}),
+                                ticks: { precision: 0 },
+                                title: { display: Boolean(axisTitle), text: axisTitle || "" }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Dashboard overview subject chart
+            createBarChart(
+                "overviewSubjectChart",
+                subjectLabels,
+                subjectValues,
+                "Average Marks",
+                100,
+                "Average Marks (0–100)"
+            );
+
+            // Performance analytics subject chart
+            createBarChart(
+                "subjectChart",
+                subjectLabels,
+                subjectValues,
+                "Average Marks",
+                100,
+                "Average Marks (0–100)"
+            );
+
+            // Grade distribution chart
+            createBarChart(
+                "gradeChart",
+                gradeLabels,
+                gradeValues,
+                "Number of Students",
+                null,
+                "Number of Students"
+            );
+
+            // Pass vs Fail doughnut chart
+            const resultCanvas = document.getElementById("resultChart");
+            if (resultCanvas) {
+                new Chart(resultCanvas, {
+                    type: "doughnut",
+                    data: {
+                        labels: ["Passed", "Failed"],
+                        datasets: [{
+                            data: [passCount, failCount],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: "bottom" }
+                        }
+                    }
+                });
+            }
+        });
     </script>
 
-
-    <!-- Custom JavaScript -->
+    <!-- Custom JavaScript for other dashboard interactions -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>

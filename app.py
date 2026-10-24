@@ -29,17 +29,21 @@ REQUIRED_COLUMNS = [
 ]
 
 
+
 def analyze_data(df):
     """Validate student data and calculate performance metrics."""
 
+    # 1. Check whether the dataset is empty
     if df.empty:
-        raise ValueError("CSV file is empty. Please upload student data.")
+        raise ValueError(
+            "CSV file is empty. Please upload student data."
+        )
 
-    # Normalize column names
+    # 2. Normalize column names
     df = df.copy()
     df.columns = df.columns.astype(str).str.strip()
 
-        # Check duplicate column names
+    # 3. Check duplicate column names
     if df.columns.duplicated().any():
         duplicate_columns = (
             df.columns[df.columns.duplicated()]
@@ -51,7 +55,7 @@ def analyze_data(df):
             + ", ".join(duplicate_columns)
         )
 
-    # Check required columns
+    # 4. Check required columns
     missing = [
         col for col in REQUIRED_COLUMNS
         if col not in df.columns
@@ -62,14 +66,19 @@ def analyze_data(df):
             "Missing columns: " + ", ".join(missing)
         )
 
-    # Keep only required columns
+    # 5. Keep only the required columns
     df = df[REQUIRED_COLUMNS].copy()
 
-    # Normalize roll numbers and names
-    df["Roll_No"] = df["Roll_No"].astype("string").str.strip()
-    df["Name"] = df["Name"].astype("string").str.strip()
+    # 6. Normalize roll numbers and names
+    df["Roll_No"] = (
+        df["Roll_No"].astype("string").str.strip()
+    )
 
-    # Check missing or empty roll numbers and names
+    df["Name"] = (
+        df["Name"].astype("string").str.strip()
+    )
+
+    # 7. Check missing or empty roll numbers and names
     if (
         df["Roll_No"].isna().any()
         or df["Name"].isna().any()
@@ -80,13 +89,19 @@ def analyze_data(df):
             "Every student must have a roll number and name."
         )
 
-    # Check duplicate roll numbers
+    # 8. Check duplicate roll numbers
     if df["Roll_No"].duplicated().any():
         raise ValueError(
             "Duplicate roll numbers are not allowed."
         )
 
-    # Validate gender values
+    # 9. Check duplicate student records
+    if df.duplicated().any():
+        raise ValueError(
+            "Duplicate student records are not allowed."
+        )
+
+    # 10. Validate gender
     df["Gender"] = (
         df["Gender"]
         .astype("string")
@@ -96,7 +111,10 @@ def analyze_data(df):
 
     allowed_genders = ["Male", "Female", "Other"]
 
-    if df["Gender"].isna().any() or df["Gender"].eq("").any():
+    if (
+        df["Gender"].isna().any()
+        or df["Gender"].eq("").any()
+    ):
         raise ValueError("Gender cannot be empty.")
 
     if not df["Gender"].isin(allowed_genders).all():
@@ -104,24 +122,27 @@ def analyze_data(df):
             "Gender must be Male, Female, or Other."
         )
 
-    # Validate marks and attendance
+    # 11. Validate marks and attendance as numeric values
     numeric_columns = SUBJECTS + ["Attendance"]
 
     for col in numeric_columns:
         try:
-            df[col] = pd.to_numeric(df[col], errors="raise")
+            df[col] = pd.to_numeric(
+                df[col],
+                errors="raise"
+            )
         except (ValueError, TypeError) as exc:
             raise ValueError(
                 f"{col} must contain valid numbers."
             ) from exc
 
-    # Reject missing numeric values
+    # 12. Reject missing numeric values
     if df[numeric_columns].isna().any().any():
         raise ValueError(
             "Marks and attendance cannot be empty."
         )
 
-    # Reject infinite values
+    # 13. Reject infinite or invalid numeric values
     if not np.isfinite(
         df[numeric_columns].to_numpy(dtype=float)
     ).all():
@@ -129,14 +150,19 @@ def analyze_data(df):
             "Marks and attendance must be finite numbers."
         )
 
-    # Marks must be between 0 and 100
+    # 14. Marks must be between 0 and 100
+
+# Marks must not be negative
     if df[SUBJECTS].lt(0).any().any():
         raise ValueError("Marks cannot be negative.")
 
+# Marks must not exceed 100
     if df[SUBJECTS].gt(100).any().any():
         raise ValueError("Marks cannot exceed 100.")
 
-    # Attendance must be between 0 and 100
+
+
+    # 15. Attendance must be between 0 and 100
     if (
         df["Attendance"].lt(0).any()
         or df["Attendance"].gt(100).any()
@@ -145,16 +171,17 @@ def analyze_data(df):
             "Attendance must be between 0 and 100."
         )
 
-    # Calculate total marks
+    # 16. Calculate total marks
     df["Total"] = df[SUBJECTS].sum(axis=1)
 
-    # Calculate percentage
+    # 17. Calculate percentage
     df["Percentage"] = np.round(
         df["Total"] / len(SUBJECTS),
         2
     )
 
-    # Pass only if every subject has at least 35 marks
+    # 18. Calculate Pass/Fail
+    # A student passes only if every subject has at least 35 marks.
     df["Result"] = np.where(
         df[SUBJECTS].ge(35).all(axis=1),
         "Pass",
@@ -162,6 +189,7 @@ def analyze_data(df):
     )
 
     return df
+
 
 
 def get_data():
@@ -172,8 +200,14 @@ def get_data():
             f"Student dataset not found: {DATA_FILE}"
         )
 
+
     try:
         df = pd.read_csv(DATA_FILE)
+
+    except FileNotFoundError as exc:
+        raise ValueError(
+            "The students.csv file was not found."
+        ) from exc
 
     except pd.errors.EmptyDataError as exc:
         raise ValueError(
@@ -185,7 +219,14 @@ def get_data():
             "The saved students.csv file has an invalid CSV format."
         ) from exc
 
+    except UnicodeDecodeError as exc:
+        raise ValueError(
+            "The students.csv file has an invalid text encoding."
+        ) from exc
+
     return analyze_data(df)
+
+
 
 
 @app.route("/", methods=["GET", "POST"])
@@ -291,6 +332,26 @@ def index():
         if total_students else 0
     )
 
+    # Grade distribution based on percentage
+    grade_distribution = {
+        "A+": int((df["Percentage"] >= 90).sum()),
+        "A": int(
+            ((df["Percentage"] >= 80) & (df["Percentage"] < 90)).sum()
+        ),
+        "B": int(
+            ((df["Percentage"] >= 70) & (df["Percentage"] < 80)).sum()
+        ),
+        "C": int(
+            ((df["Percentage"] >= 60) & (df["Percentage"] < 70)).sum()
+        ),
+        "D": int(
+            ((df["Percentage"] >= 35) & (df["Percentage"] < 60)).sum()
+        ),
+        "F": int((df["Percentage"] < 35).sum()),
+    }
+
+
+
     # Average attendance
     average_attendance = (
         round(df["Attendance"].mean(), 2)
@@ -320,21 +381,43 @@ def index():
         df[SUBJECTS].mean().round(2).to_dict()
     )
 
+# Highest and lowest scoring subjects
+    if subject_averages:
+        highest_subject = max(
+            subject_averages,
+            key=subject_averages.get
+        )
+
+        lowest_subject = min(
+            subject_averages,
+            key=subject_averages.get
+        )
+    else:
+        highest_subject = None
+        lowest_subject = None
+
+
+
+
     return render_template(
-        "index.html",
-        total_students=total_students,
-        average_percentage=average_percentage,
-        average_attendance=average_attendance,
-        pass_percentage=pass_percentage,
-        pass_count=pass_count,
-        fail_count=fail_count,
-        top_students=top_students,
-        subject_averages=subject_averages,
-        students=visible_students.to_dict("records"),
-        message=message,
-        error=error,
-        search=search
+    "index.html",
+    total_students=total_students,
+    average_percentage=average_percentage,
+    average_attendance=average_attendance,
+    pass_percentage=pass_percentage,
+    pass_count=pass_count,
+    fail_count=fail_count,
+    top_students=top_students,
+    subject_averages=subject_averages,
+    grade_distribution=grade_distribution,
+    highest_subject=highest_subject,
+    lowest_subject=lowest_subject,
+    students=visible_students.to_dict("records"),
+    message=message,
+    error=error,
+    search=search
     )
+
 
 
 @app.route("/download")
