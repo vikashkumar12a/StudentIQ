@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, send_file
 import pandas as pd
 import numpy as np
+import os
 from pathlib import Path
 from io import BytesIO
 
@@ -9,6 +10,8 @@ app = Flask(__name__)
 
 # Maximum uploaded file size: 5 MB
 app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
+
+MAX_STUDENTS = 10_000
 
 # Project paths
 BASE_DIR = Path(__file__).resolve().parent
@@ -247,6 +250,12 @@ def index():
         else:
             try:
                 uploaded_df = pd.read_csv(file)
+
+                if len(uploaded_df) > MAX_STUDENTS:
+                    raise ValueError(
+                        f"CSV file cannot contain more than {MAX_STUDENTS:,} students."
+                    )
+
                 validated_df = analyze_data(uploaded_df)
 
                 # Save only after successful validation
@@ -254,12 +263,10 @@ def index():
                     parents=True,
                     exist_ok=True
                 )
-
                 validated_df[REQUIRED_COLUMNS].to_csv(
                     DATA_FILE,
                     index=False
                 )
-
                 message = "Dataset uploaded successfully!"
 
             except pd.errors.EmptyDataError:
@@ -454,4 +461,5 @@ def file_too_large(error):
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    debug_mode = os.getenv("FLASK_DEBUG", "0") == "1"
+    app.run(debug=debug_mode)

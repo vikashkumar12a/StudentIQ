@@ -445,8 +445,6 @@ def test_upload_wrong_file_extension(client):
     assert response.status_code == 200
     assert b"Please upload a CSV file." in response.data
 
-
-
 def test_get_data_file_not_found(monkeypatch, tmp_path):
     import app as app_module
 
@@ -463,7 +461,6 @@ def test_get_data_file_not_found(monkeypatch, tmp_path):
         match="Student dataset not found",
     ):
         app_module.get_data()
-
 
 def test_get_data_empty_csv(monkeypatch, tmp_path):
     import app as app_module
@@ -482,10 +479,6 @@ def test_get_data_empty_csv(monkeypatch, tmp_path):
         match="saved students.csv file is empty",
     ):
         app_module.get_data()
-
-
-
-
 
 def test_get_data_invalid_csv(monkeypatch, tmp_path):
     import app as app_module
@@ -510,10 +503,6 @@ def test_get_data_invalid_csv(monkeypatch, tmp_path):
         match="invalid CSV format",
     ):
         app_module.get_data()
-
-
-
-
 
 def test_analyze_data_duplicate_student_records():
     import pandas as pd
@@ -540,9 +529,6 @@ def test_analyze_data_duplicate_student_records():
     ):
         analyze_data(df)
 
-
-
-
 def test_get_data_invalid_encoding(monkeypatch, tmp_path):
     import app as app_module
 
@@ -561,7 +547,6 @@ def test_get_data_invalid_encoding(monkeypatch, tmp_path):
         match="invalid text encoding",
     ):
         app_module.get_data()
-
 
 
 def test_upload_valid_csv(client, monkeypatch, tmp_path):
@@ -608,9 +593,6 @@ def test_search_student_by_name(client):
     assert b"Rahul" in response.data
 
 
-
-
-
 def test_upload_empty_csv(client):
     import io
 
@@ -628,10 +610,6 @@ def test_upload_empty_csv(client):
     assert response.status_code == 200
     assert b"CSV file is empty" in response.data
 
-
-
-
-
 def test_download_report(client):
     response = client.get("/download")
 
@@ -641,13 +619,6 @@ def test_download_report(client):
         "student_performance_report.csv"
         in response.headers["Content-Disposition"]
     )
-
-
-
-
-
-
-
 
 def test_upload_unexpected_error(client, monkeypatch):
     import io
@@ -686,9 +657,6 @@ def test_upload_unexpected_error(client, monkeypatch):
         in response.data
     )
 
-
-
-
 def test_download_report_error(client, monkeypatch):
     import app as app_module
 
@@ -705,7 +673,6 @@ def test_download_report_error(client, monkeypatch):
 
     assert response.status_code == 500
     assert response.data == b"Unable to generate the report."
-
 
 def test_get_data_read_csv_file_not_found(monkeypatch, tmp_path):
     import app as app_module
@@ -737,9 +704,6 @@ def test_get_data_read_csv_file_not_found(monkeypatch, tmp_path):
     ):
         app_module.get_data()
 
-
-
-
 def test_dashboard_dataset_error(client, monkeypatch):
     import app as app_module
 
@@ -761,9 +725,6 @@ def test_dashboard_dataset_error(client, monkeypatch):
         in response.data
     )
 
-
-
-
 def test_negative_marks_are_rejected(valid_data):
     """Negative marks should be rejected."""
 
@@ -774,7 +735,6 @@ def test_negative_marks_are_rejected(valid_data):
         match="Marks cannot be negative",
     ):
         analyze_data(valid_data)
-
 
 def test_marks_above_100_are_rejected(valid_data):
     """Marks above 100 should be rejected."""
@@ -787,8 +747,6 @@ def test_marks_above_100_are_rejected(valid_data):
     ):
         analyze_data(valid_data)
 
-
-
 def test_negative_attendance_is_rejected(valid_data):
     """Negative attendance should be rejected."""
 
@@ -800,7 +758,6 @@ def test_negative_attendance_is_rejected(valid_data):
     ):
         analyze_data(valid_data)
 
-
 def test_attendance_above_100_is_rejected(valid_data):
     """Attendance above 100 should be rejected."""
 
@@ -811,9 +768,6 @@ def test_attendance_above_100_is_rejected(valid_data):
         match="Attendance must be between 0 and 100",
     ):
         analyze_data(valid_data)
-
-
-
 
 def test_invalid_gender_upload_preserves_existing_data(
     tmp_path,
@@ -865,6 +819,74 @@ def test_invalid_gender_upload_preserves_existing_data(
         )
 
     assert response.status_code == 200
+
+    saved_data = pd.read_csv(data_file)
+
+    assert str(saved_data["Roll_No"].iloc[0]) == "101"
+    assert saved_data["Name"].iloc[0] == "Rahul"
+    assert saved_data["Gender"].iloc[0] == "Male"
+
+def test_upload_rejects_more_than_max_students(
+    tmp_path,
+    monkeypatch,
+):
+    import app as student_app
+
+    app.config["TESTING"] = True
+
+    original_data = pd.DataFrame(
+        {
+            "Roll_No": ["101"],
+            "Name": ["Rahul"],
+            "Gender": ["Male"],
+            "Python": [80],
+            "Maths": [75],
+            "English": [85],
+            "Science": [90],
+            "Attendance": [95],
+        }
+    )
+    data_file = tmp_path / "students.csv"
+    original_data.to_csv(data_file, index=False)
+
+    monkeypatch.setattr(
+        student_app,
+        "DATA_FILE",
+        data_file,
+    )
+
+    row_count = student_app.MAX_STUDENTS + 1
+
+    large_data = pd.DataFrame(
+        {
+            "Roll_No": [str(i) for i in range(row_count)],
+            "Name": ["Student"] * row_count,
+            "Gender": ["Male"] * row_count,
+            "Python": [80] * row_count,
+            "Maths": [75] * row_count,
+            "English": [85] * row_count,
+            "Science": [90] * row_count,
+            "Attendance": [95] * row_count,
+        }
+    )
+
+    csv_content = large_data.to_csv(index=False).encode("utf-8")
+
+    with app.test_client() as client:
+        response = client.post(
+            "/",
+            data={
+                "dataset": (
+                    io.BytesIO(csv_content),
+                    "large_students.csv",
+                )
+            },
+            content_type="multipart/form-data",
+        )
+
+    assert response.status_code == 200
+
+    assert b"cannot contain more than" in response.data.lower()
 
     saved_data = pd.read_csv(data_file)
 
