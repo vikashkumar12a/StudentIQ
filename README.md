@@ -117,3 +117,17 @@ StudentIQ/
 ## Disclaimer
 
 StudentIQ is an educational project intended for learning, student data analysis, and portfolio demonstration.
+
+## Screenshots
+
+### Dashboard
+
+![StudentIQ Dashboard](screenshots/dashboard.png)
+
+### Performance Analysis
+
+![StudentIQ Performance Analysis](screenshots/performance.png)
+
+### Student Records
+
+![StudentIQ Student Records](screenshots/students.png)
