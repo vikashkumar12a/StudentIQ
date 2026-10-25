@@ -1,34 +1,42 @@
-# Student Performance Analyzer
+# StudentIQ — Student Performance Analyzer
 
-A Python-based student analytics web application built using Flask, Pandas, and NumPy. It helps analyze student performance through marks, attendance, percentages, and pass/fail results.
+A Python-based web application built using Flask, Pandas, and NumPy to analyze student academic performance. StudentIQ helps users evaluate marks, attendance, percentages, and pass/fail results through a web dashboard.
 
 ## Features
 
-* Upload student data using CSV files.
-* Validate uploaded data and required columns.
-* Analyze subject marks and attendance.
-* Calculate total marks and percentages.
-* Determine pass/fail status.
-* Handle missing, duplicate, and invalid data.
-* Display analytics through a web dashboard.
-* Run automated tests using pytest.
+* **CSV Upload:** Upload student records using CSV files.
+* **Data Validation:** Validate required columns and reject invalid data.
+* **Student Analytics:** Calculate total marks, percentages, and performance statistics.
+* **Pass/Fail Analysis:** Determine student results according to the application's rules.
+* **Attendance Analysis:** Analyze student attendance and calculate average attendance.
+* **Subject Analysis:** Calculate subject-wise averages and identify highest and lowest-performing subjects.
+* **Student Search:** Search for students by name.
+* **Report Download:** Download student performance reports.
+* **Upload Protection:** Enforce file validation and a maximum limit of 10,000 student records per upload.
+* **Automated Testing:** Test application functionality and error-handling scenarios using pytest.
 
 ## Tech Stack
 
-* Python
-* Flask
-* Pandas
-* NumPy
-* HTML, CSS, JavaScript
-* pytest and pytest-cov
+* **Language:** Python
+* **Web Framework:** Flask
+* **Data Analysis:** Pandas, NumPy
+* **Frontend:** HTML, CSS, JavaScript
+* **Testing:** pytest, pytest-cov
+* **Version Control:** Git and GitHub
 
-## Installation
+## Requirements
+
+* Python 3.11 or a compatible Python version
+* Git
+* pip
+
+## Installation and Setup
 
 ### 1. Clone the repository
 
 ```bash
-git clone <YOUR_REPOSITORY_URL>
-cd "Student Performance Analyzer"
+git clone https://github.com/vikashkumar12a/StudentIQ.git
+cd StudentIQ
 ```
 
 ### 2. Create a virtual environment
@@ -37,12 +45,18 @@ cd "Student Performance Analyzer"
 python -m venv venv
 ```
 
-### 3. Activate the environment
+### 3. Activate the virtual environment
 
-Windows Command Prompt:
+**Windows Command Prompt:**
 
 ```cmd
 venv\Scripts\activate
+```
+
+**Windows PowerShell:**
+
+```powershell
+.\venv\Scripts\Activate.ps1
 ```
 
 ### 4. Install dependencies
@@ -53,21 +67,23 @@ python -m pip install -r requirements.txt
 
 ## Run the Application
 
+Start the Flask application:
+
 ```bash
 python app.py
 ```
 
-Open the local URL displayed in your terminal.
+Open the local URL displayed in your terminal in a web browser.
 
 ## Run Tests
 
-Run the complete test suite:
+Run all application tests:
 
 ```bash
-python -m pytest -v
+python -m pytest tests/test_app.py -v
 ```
 
-Run tests with coverage:
+Run tests with code coverage:
 
 ```bash
 python -m pytest --cov=app --cov-report=term-missing
@@ -76,7 +92,7 @@ python -m pytest --cov=app --cov-report=term-missing
 ## Project Structure
 
 ```text
-Student Performance Analyzer/
+StudentIQ/
 ├── app.py
 ├── data/
 ├── static/
@@ -93,11 +109,11 @@ Student Performance Analyzer/
 
 ## Future Improvements
 
-* More advanced student performance analytics.
-* Improved reporting and data visualization.
-* Additional automated tests.
-* Secure multi-user support.
+* Add more advanced student performance analytics.
+* Improve data visualization and reporting.
+* Add more automated tests.
+* Introduce secure multi-user support.
 
 ## Disclaimer
 
-This project is intended for learning, data analysis, and portfolio demonstration.
+StudentIQ is an educational project intended for learning, student data analysis, and portfolio demonstration.
