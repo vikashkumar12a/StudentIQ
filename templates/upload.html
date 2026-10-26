@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Dataset | StudentIQ{% endblock %}
+{% block breadcrumb %}Upload Dataset{% endblock %}
+{% block heading %}Upload Dataset{% endblock %}
+{% block subtitle %}Upload your student data to analyze academic performance.{% endblock %}
+
+{% block content %}
+
+<section>
+    <div class="panel">
+
+        <div class="panel-heading">
+
+
+            <div class="page-header">
+                <h1>Upload Student Data</h1>
+                <p>Select a CSV file containing student records.</p>
+            </div>
+
+
+
+            <span class="chart-badge">CSV FILE</span>
+        </div>
+
+        {% if message %}
+        <div class="alert success-alert" role="status">
+            {{ message }}
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert error-alert" role="alert">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form action="{{ url_for('upload') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+
+            <label for="file" class="upload-dropzone">
+
+                <div class="upload-icon">↑</div>
+
+                <h3>Choose your CSV file</h3>
+
+                <p>
+                    Select a CSV file from your computer.<br>
+                    Make sure it contains all required columns.
+                </p>
+
+                <span class="button button-outline">Browse Files</span>
+
+                <input type="file" id="file" name="dataset" accept=".csv,text/csv" required>
+
+            </label>
+
+            <div class="upload-bottom">
+                <p id="file-name">No file selected · CSV format only</p>
+
+                <button type="submit" class="button button-primary">
+                    Upload Dataset
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</section>
+
+<section>
+    <div class="panel">
+
+        <div class="panel-heading">
+            <div>
+                <h2>Upload Instructions</h2>
+                <p>Check these requirements before uploading.</p>
+            </div>
+        </div>
+
+        <ul style="padding-left: 20px; line-height: 2; color: var(--muted);">
+            <li>Upload a CSV file only.</li>
+            <li>Maximum number of students: 10,000, as configured by the application.</li>
+            <li>All required columns must be present.</li>
+        </ul>
+
+        <div style="margin-top: 22px;">
+            <h3 style="margin-bottom: 12px;">Required CSV Columns</h3>
+
+            <p style="color: var(--muted); line-height: 1.8;">
+                Roll_No, Name, Gender, Python, Maths, English,
+                Science, Attendance
+            </p>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const fileInput = document.getElementById("file");
+    const fileName = document.getElementById("file-name");
+
+    if (fileInput && fileName) {
+        fileInput.addEventListener("change", function () {
+            if (this.files.length > 0) {
+                fileName.textContent = this.files[0].name;
+            } else {
+                fileName.textContent = "No file selected · CSV format only";
+            }
+        });
+    }
+</script>
+{% endblock %}

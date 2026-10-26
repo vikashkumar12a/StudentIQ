@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}StudentIQ{% endblock %}</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+
+            <div class="brand">
+                <div class="brand-icon">S</div>
+
+                <div>
+                    <h2>Student<span>IQ</span></h2>
+                    <p>Performance Analytics</p>
+                </div>
+            </div>
+
+            <div class="menu-heading">MAIN MENU</div>
+
+            <nav class="navigation">
+                <a href="{{ url_for('index') }}" class="nav-link">
+                    Dashboard
+                </a>
+
+                <a href="{{ url_for('performance') }}" class="nav-link">
+                    Performance
+                </a>
+
+                <a href="{{ url_for('students') }}" class="nav-link">
+                    Students
+                </a>
+
+                <a href="{{ url_for('upload') }}" class="nav-link">
+                    Upload Dataset
+                </a>
+
+                <a href="{{ url_for('top_students_page') }}" class="nav-link">
+                    Top Students
+                </a>
+            </nav>
+
+            <!-- Sidebar Bottom -->
+            <div class="sidebar-bottom">
+
+                <div class="sidebar-help">
+                    <h3>Need Help?</h3>
+                    <p>Manage and analyze student performance with StudentIQ.</p>
+                </div>
+
+                <div class="sidebar-footer">
+                    <p>StudentIQ</p>
+                    <span>Admin Panel</span>
+                </div>
+
+            </div>
+
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Page Header -->
+            <header class="topbar">
+
+                <div class="page-title">
+                    <p class="breadcrumb">Pages / {% block breadcrumb %}Dashboard{% endblock %}</p>
+
+                    <h1>{% block heading %}Student Dashboard{% endblock %}</h1>
+
+                    <p class="page-subtitle">
+                        {% block subtitle %}Monitor academic performance and student progress.{% endblock %}
+                    </p>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="live-status">
+                        <span></span>
+                        Live Analytics
+                    </div>
+
+                    <div class="profile-avatar">A</div>
+                </div>
+
+            </header>
+
+            <!-- Individual Page Content -->
+            {% block content %}
+            {% endblock %}
+
+        </main>
+
+    </div>
+
+    <!-- Main JavaScript -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    {% block scripts %}
+    {% endblock %}
+
+</body>
+</html>
+

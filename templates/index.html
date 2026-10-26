@@ -44,30 +44,28 @@
 
             <nav class="navigation">
 
-                <a href="#overview" class="nav-link active">
-                    <span class="nav-icon">▦</span>
+
+                <a href="{{ url_for('index') }}" class="nav-link active">
                     Dashboard
                 </a>
 
-                <a href="#performance" class="nav-link">
-                    <span class="nav-icon">▥</span>
+                <a href="{{ url_for('performance') }}" class="nav-link">
                     Performance
                 </a>
 
-                <a href="#students" class="nav-link">
-                    <span class="nav-icon">♙</span>
+                <a href="{{ url_for('students') }}" class="nav-link">
                     Students
                 </a>
 
-                <a href="#upload" class="nav-link">
-                    <span class="nav-icon">↑</span>
+                <a href="{{ url_for('upload') }}" class="nav-link">
                     Upload Dataset
                 </a>
 
-                <a href="#top-students" class="nav-link">
-                    <span class="nav-icon">★</span>
+                <a href="{{ url_for('top_students_page') }}" class="nav-link">
                     Top Students
                 </a>
+
+
 
             </nav>
 
@@ -327,7 +325,8 @@
 
 
                         <div style="position: relative; width: 100%; height: 300px;">
-                            <canvas id="overviewSubjectChart" aria-label="Subject performance comparison" role="img"></canvas>
+                            <canvas id="overviewSubjectChart" aria-label="Subject performance comparison"
+                                role="img"></canvas>
                         </div>
 
 
@@ -796,98 +795,119 @@
     <!-- ================= CHARTS ================= -->
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            const subjectLabels = {{ subject_averages.keys() | list | tojson }};
-            const subjectValues = {{ subject_averages.values() | list | tojson }};
-            const gradeLabels = {{ (grade_distribution | default({})).keys() | list | tojson }};
-            const gradeValues = {{ (grade_distribution | default({})).values() | list | tojson }};
-            const passCount = {{ pass_count | tojson }};
-            const failCount = {{ fail_count | tojson }};
+            const subjectLabels = {{ subject_averages.keys() | list | tojson
+        }};
+        const subjectValues = {{ subject_averages.values() | list | tojson }};
+        const gradeLabels = {{ (grade_distribution | default ({})).keys() | list | tojson }};
+        const gradeValues = {{ (grade_distribution | default ({})).values() | list | tojson }};
+        const passCount = {{ pass_count | tojson }};
+        const failCount = {{ fail_count | tojson }};
 
-            function createBarChart(canvasId, labels, values, datasetLabel, maxValue, axisTitle) {
-                const canvas = document.getElementById(canvasId);
-                if (!canvas) return;
+        function createBarChart(canvasId, labels, values, datasetLabel, maxValue, axisTitle) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
 
-                new Chart(canvas, {
-                    type: "bar",
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: datasetLabel,
-                            data: values,
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ...(maxValue !== null ? { max: maxValue } : {}),
-                                ticks: { precision: 0 },
-                                title: { display: Boolean(axisTitle), text: axisTitle || "" }
-                            }
+            new Chart(canvas, {
+                type: "bar",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: datasetLabel,
+                        data: values,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ...(maxValue !== null ? { max: maxValue } : {}),
+                            ticks: { precision: 0 },
+                            title: { display: Boolean(axisTitle), text: axisTitle || "" }
                         }
                     }
-                });
-            }
+                }
+            });
+        }
 
-            // Dashboard overview subject chart
-            createBarChart(
-                "overviewSubjectChart",
-                subjectLabels,
-                subjectValues,
-                "Average Marks",
-                100,
-                "Average Marks (0–100)"
-            );
+        // Dashboard overview subject chart
+        createBarChart(
+            "overviewSubjectChart",
+            subjectLabels,
+            subjectValues,
+            "Average Marks",
+            100,
+            "Average Marks (0–100)"
+        );
 
-            // Performance analytics subject chart
-            createBarChart(
-                "subjectChart",
-                subjectLabels,
-                subjectValues,
-                "Average Marks",
-                100,
-                "Average Marks (0–100)"
-            );
+        // Performance analytics subject chart
+        createBarChart(
+            "subjectChart",
+            subjectLabels,
+            subjectValues,
+            "Average Marks",
+            100,
+            "Average Marks (0–100)"
+        );
 
-            // Grade distribution chart
-            createBarChart(
-                "gradeChart",
-                gradeLabels,
-                gradeValues,
-                "Number of Students",
-                null,
-                "Number of Students"
-            );
+        // Grade distribution chart
+        createBarChart(
+            "gradeChart",
+            gradeLabels,
+            gradeValues,
+            "Number of Students",
+            null,
+            "Number of Students"
+        );
 
-            // Pass vs Fail doughnut chart
-            const resultCanvas = document.getElementById("resultChart");
-            if (resultCanvas) {
-                new Chart(resultCanvas, {
-                    type: "doughnut",
-                    data: {
-                        labels: ["Passed", "Failed"],
-                        datasets: [{
-                            data: [passCount, failCount],
-                            borderWidth: 1
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { position: "bottom" }
-                        }
+        // Pass vs Fail doughnut chart
+        const resultCanvas = document.getElementById("resultChart");
+        if (resultCanvas) {
+            new Chart(resultCanvas, {
+                type: "doughnut",
+                data: {
+                    labels: ["Passed", "Failed"],
+                    datasets: [{
+                        data: [passCount, failCount],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: "bottom" }
                     }
-                });
-            }
+                }
+            });
+        }
         });
     </script>
 
     <!-- Custom JavaScript for other dashboard interactions -->
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const params = new URLSearchParams(window.location.search);
+            const search = params.get("search");
+
+            if (search !== null) {
+                const studentsSection = document.getElementById("students");
+
+                if (studentsSection) {
+                    studentsSection.scrollIntoView({
+                        behavior: "instant",
+                        block: "start"
+                    });
+                }
+            }
+        });
+    </script>
+
 
 </body>
 

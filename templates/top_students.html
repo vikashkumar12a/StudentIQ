@@ -1,0 +1,98 @@
+
+{% extends "base.html" %}
+
+{% block title %}Top Students | StudentIQ{% endblock %}
+{% block breadcrumb %}Top Students{% endblock %}
+{% block heading %}Top Students 🏆{% endblock %}
+{% block subtitle %}Recognizing the top performers in your dataset.{% endblock %}
+
+{% block content %}
+
+<section>
+    <div class="panel">
+
+        <div class="panel-heading">
+            <div>
+                <h2>Top 5 Students</h2>
+                <p>Students ranked by their percentage.</p>
+            </div>
+
+            <span class="chart-badge">TOP PERFORMERS</span>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Roll No</th>
+                        <th>Name</th>
+                        <th>Python</th>
+                        <th>Maths</th>
+                        <th>English</th>
+                        <th>Science</th>
+                        <th>Total</th>
+                        <th>Percentage</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for student in top_students %}
+                    <tr>
+                        <td>
+                            <span class="rank-badge">
+                                {{ loop.index }}
+                            </span>
+                        </td>
+
+                        <td>{{ student.Roll_No }}</td>
+
+                        <td>
+                            <div class="student-name">
+                                <div class="student-avatar">
+                                    {{ student.Name[0] if student.Name else '?' }}
+                                </div>
+                                <strong>{{ student.Name }}</strong>
+                            </div>
+                        </td>
+
+                        <td>{{ student.Python }}</td>
+                        <td>{{ student.Maths }}</td>
+                        <td>{{ student.English }}</td>
+                        <td>{{ student.Science }}</td>
+                        <td>{{ student.Total }}</td>
+
+                        <td>
+                            <span class="percentage-value">
+                                {{ student.Percentage }}%
+                            </span>
+                        </td>
+
+                        <td>
+                            {% if student.Result|string|lower == 'pass' %}
+                                <span class="result-badge pass-badge">Pass</span>
+                            {% else %}
+                                <span class="result-badge fail-badge">
+                                    {{ student.Result }}
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="10" class="empty-message">
+                            No student records available.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+

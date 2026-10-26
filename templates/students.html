@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Students | StudentIQ{% endblock %}
+{% block breadcrumb %}Students{% endblock %}
+{% block heading %}All Students{% endblock %}
+{% block subtitle %}View and search student performance records.{% endblock %}
+
+{% block content %}
+
+<section>
+    <div class="panel">
+
+        <div class="panel-heading">
+            <div>
+                <h2>Search Students</h2>
+                <p>Search by student name or roll number.</p>
+            </div>
+        </div>
+
+        <form action="{{ url_for('students') }}" method="GET" class="search-form">
+
+            <div class="search-box">
+                <span>⌕</span>
+                <input
+                    type="text"
+                    name="search"
+                    value="{{ search }}"
+                    placeholder="Search by name or roll number..."
+                    aria-label="Search students"
+                >
+            </div>
+
+            <button type="submit" class="button button-primary">
+                Search
+            </button>
+
+            {% if search %}
+                <a href="{{ url_for('students') }}" class="button button-outline">
+                    Clear
+                </a>
+            {% endif %}
+
+        </form>
+
+        <div class="panel-heading">
+            <div>
+                <h2>Student Records</h2>
+                <p>Total records displayed: {{ students | length }}</p>
+            </div>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Roll No</th>
+                        <th>Name</th>
+                        <th>Gender</th>
+                        <th>Python</th>
+                        <th>Maths</th>
+                        <th>English</th>
+                        <th>Science</th>
+                        <th>Attendance</th>
+                        <th>Total</th>
+                        <th>Percentage</th>
+                        <th>Result</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td>{{ student.Roll_No }}</td>
+                        <td>
+                            <div class="student-name">
+                                <div class="student-avatar">
+                                    {{ student.Name[0] if student.Name else '?' }}
+                                </div>
+                                <strong>{{ student.Name }}</strong>
+                            </div>
+                        </td>
+                        <td>{{ student.Gender }}</td>
+                        <td>{{ student.Python }}</td>
+                        <td>{{ student.Maths }}</td>
+                        <td>{{ student.English }}</td>
+                        <td>{{ student.Science }}</td>
+                        <td>{{ student.Attendance }}%</td>
+                        <td>{{ student.Total }}</td>
+                        <td>
+                            <span class="percentage-value">
+                                {{ student.Percentage }}%
+                            </span>
+                        </td>
+                        <td>
+                            {% if student.Result|string|lower == 'pass' %}
+                                <span class="result-badge pass-badge">Pass</span>
+                            {% else %}
+                                <span class="result-badge fail-badge">
+                                    {{ student.Result }}
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="11" class="empty-message">
+                            No students found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
+

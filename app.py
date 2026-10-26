@@ -308,6 +308,8 @@ def index():
 
     # Search by student name or roll number
     search = request.args.get("search", "").strip()
+    if search:
+        request.environ["SEARCH_PERFORMED"] = "1"
 
     if search:
         mask = (
@@ -459,6 +461,147 @@ def file_too_large(error):
         "Please upload a smaller CSV file.",
         413
     )
+
+
+@app.route("/performance")
+def performance():
+    """Display the performance analysis page."""
+
+    df = get_data()
+
+    subject_averages = (
+        df[SUBJECTS].mean().round(2).to_dict()
+    )
+
+    return render_template(
+        "performance.html",
+        subject_averages=subject_averages
+    )
+
+
+@app.route("/students")
+def students():
+    """Display all students with search functionality."""
+
+    df = get_data()
+
+    search = request.args.get("search", "").strip()
+
+    if search:
+        mask = (
+            df["Name"].str.contains(
+                search,
+                case=False,
+                na=False,
+                regex=False
+            )
+            |
+            df["Roll_No"].str.contains(
+                search,
+                case=False,
+                na=False,
+                regex=False
+            )
+        )
+
+        df = df[mask]
+
+    return render_template(
+        "students.html",
+        students=df.to_dict("records"),
+        search=search
+    )
+
+
+@app.route("/upload", methods=["GET", "POST"])
+def upload():
+    message = ""
+    error = ""
+
+    if request.method == "POST":
+        file = request.files.get("dataset")
+
+        if not file or not file.filename:
+            error = "Please select a CSV file."
+
+        elif not file.filename.lower().endswith(".csv"):
+            error = "Please upload a CSV file."
+
+        else:
+            try:
+                uploaded_df = pd.read_csv(file)
+
+                if len(uploaded_df) > MAX_STUDENTS:
+                    raise ValueError(
+                        f"CSV file cannot contain more than "
+                        f"{MAX_STUDENTS:,} students."
+                    )
+
+                validated_df = analyze_data(uploaded_df)
+
+                DATA_FILE.parent.mkdir(
+                    parents=True,
+                    exist_ok=True
+                )
+
+                validated_df[REQUIRED_COLUMNS].to_csv(
+                    DATA_FILE,
+                    index=False
+                )
+
+                message = "Dataset uploaded successfully!"
+
+            except pd.errors.EmptyDataError:
+                error = "CSV file is empty."
+
+            except pd.errors.ParserError:
+                error = "Invalid CSV format."
+
+            except (ValueError, UnicodeDecodeError) as exc:
+                error = f"Upload failed: {exc}"
+
+            except Exception:
+                app.logger.exception("CSV upload error")
+                error = "Upload failed due to an unexpected error."
+
+    return render_template(
+        "upload.html",
+        message=message,
+        error=error
+    )
+
+
+def upload():
+    """Display the CSV dataset upload page."""
+
+    return render_template(
+        "upload.html",
+        message="",
+        error=""
+    )
+
+
+@app.route("/top-students")
+def top_students_page():
+    """Display the top five students."""
+
+    df = get_data()
+
+    top_students = (
+        df.sort_values(
+            ["Percentage", "Name"],
+            ascending=[False, True]
+        )
+        .head(5)
+        .to_dict("records")
+    )
+
+    return render_template(
+        "top_students.html",
+        top_students=top_students
+    )
+
+
 
 if __name__ == "__main__":
     debug_mode = os.getenv("FLASK_DEBUG", "0") == "1"

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Performance | StudentIQ{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <h1>Performance Analysis</h1>
+    <p>Analyze average marks across all subjects.</p>
+</section>
+
+<section class="dashboard-grid">
+
+    {% for subject, average in subject_averages.items() %}
+    <div class="dashboard-card">
+        <h3>{{ subject }}</h3>
+        <p class="card-value">{{ average }}%</p>
+        <p>Average Marks</p>
+    </div>
+    {% endfor %}
+
+</section>
+
+<section class="dashboard-card">
+    <h2>Subject-wise Performance</h2>
+
+    <canvas id="performanceChart"></canvas>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const subjectNames = {{ subject_averages.keys() | list | tojson }};
+    const subjectMarks = {{ subject_averages.values() | list | tojson }};
+
+    const chartElement = document.getElementById("performanceChart");
+
+    if (chartElement) {
+        new Chart(chartElement, {
+            type: "bar",
+            data: {
+                labels: subjectNames,
+                datasets: [{
+                    label: "Average Marks",
+                    data: subjectMarks,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}
+
